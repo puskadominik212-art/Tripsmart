@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0d9488">
+<title>TripSmart – miesta v okolí</title>
+<style>
+:root{--teal:#0d9488;--dark:#12313a;--bg:#f3f8f7;--muted:#60747a;--line:#dce9e6}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--dark);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:linear-gradient(135deg,#0d9488,#115e59);color:#fff;padding:25px 18px 28px;border-radius:0 0 24px 24px}
+.brand{font-size:13px;letter-spacing:2px;font-weight:800}.hero{font-size:28px;line-height:1.15;font-weight:850;margin:10px 0}.sub{font-size:14px;line-height:1.5}
+main{max-width:650px;margin:auto;padding:15px 13px 35px}.card{background:white;border:1px solid var(--line);border-radius:17px;padding:16px;margin-bottom:13px}
+h2{font-size:18px;margin:0 0 13px}label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}
+input,select{width:100%;padding:12px;border:1px solid #cbdcd8;border-radius:11px;background:white;color:var(--dark);font:inherit}
+button,.linkbtn{display:inline-block;text-align:center;text-decoration:none;border:0;border-radius:12px;padding:13px 14px;background:var(--teal);color:#fff;font:inherit;font-weight:800;cursor:pointer}
+button{width:100%;margin-top:13px}.secondary{background:#e7f5f2;color:#0f766e;border:1px solid #cce9e2}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:8px}.check{display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:13px}.check input{width:17px;height:17px;accent-color:var(--teal)}
+.note{font-size:12px;color:var(--muted);line-height:1.5}.status{padding:11px;background:#edf7f5;border-radius:10px;font-size:13px;line-height:1.45;display:none;margin-top:12px}
+.place{padding:13px 0;border-top:1px solid var(--line)}.place:first-child{border-top:0}.place h3{font-size:15px;margin:0 0 4px}.place p{font-size:13px;line-height:1.45;color:var(--muted);margin:4px 0 8px}.tags{display:flex;flex-wrap:wrap;gap:5px}.tag{font-size:11px;background:#edf7f5;color:#0f766e;border-radius:99px;padding:4px 8px}.place a{font-size:13px;color:#087f76;font-weight:700}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:8px 14px 22px}
+</style>
+</head>
+<body>
+<header>
+<div class="brand">TRIPSMART</div>
+<div class="hero">Nájdi skutočné miesta.</div>
+<div class="sub">Vyhľadaj reštaurácie, atrakcie, kiná a parky v zvolenej destinácii.</div>
+</header>
+<main>
+<section class="card">
+<h2>Kam chceš ísť?</h2>
+<label for="destination">Mesto alebo destinácia</label>
+<input id="destination" value="Banská Bystrica, Slovensko" placeholder="Napr. Banská Bystrica, Slovensko">
+<label>Čo chceš nájsť?</label>
+<div class="checks">
+<label class="check"><input type="checkbox" id="food" checked> Reštaurácie</label>
+<label class="check"><input type="checkbox" id="sights" checked> Atrakcie a múzeá</label>
+<label class="check"><input type="checkbox" id="cinema" checked> Kino</label>
+<label class="check"><input type="checkbox" id="parks" checked> Parky a príroda</label>
+<label class="check"><input type="checkbox" id="water"> Kúpaliská / aquaparky</label>
+</div>
+<button id="search">Vyhľadať miesta</button>
+<div id="status" class="status" role="status"></div>
+<p class="note">Ukážka používa OpenStreetMap geodáta. Vyhľadávanie cez otvorené mapové služby môže mať limity a nemusí nájsť všetky podniky. Pred návštevou si over aktuálne hodiny a ceny.</p>
+</section>
+<section class="card">
+<h2>Výsledky</h2>
+<div id="results"><p class="note">Zadaj destináciu a ťukni na „Vyhľadať miesta“.</p></div>
+</section>
+<section class="card">
+<h2>Čo bude nasledovať?</h2>
+<p style="font-size:14px;line-height:1.5;margin-bottom:0">Toto je testovacia verzia vyhľadávania. Pre spoľahlivé fungovanie vo vydanej aplikácii treba službu hostovať online, dodržiavať pravidlá dátového poskytovateľa a následne doplniť ceny, zľavy, rozpočet a predplatné.</p>
+</section>
+</main>
+<footer>TripSmart • Testovacia verzia vyhľadávania miest • Mapové údaje © OpenStreetMap contributors</footer>
+<script>
+const $=id=>document.getElementById(id);
+const statusBox=$('status'), results=$('results');
+const setStatus=(msg)=>{statusBox.style.display='block';statusBox.textContent=msg};
+const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function selectedCategories(){
+ let filters=[];
+ if($('food').checked) filters.push({label:'Reštaurácia',query:'["amenity"~"restaurant|cafe|fast_food"]'});
+ if($('sights').checked) filters.push({label:'Atrakcia / múzeum',query:'["tourism"~"attraction|museum|gallery"]'});
+ if($('cinema').checked) filters.push({label:'Kino',query:'["amenity"="cinema"]'});
+ if($('parks').checked) filters.push({label:'Park / príroda',query:'["leisure"="park"]'});
+ if($('water').checked) filters.push({label:'Kúpalisko / aquapark',query:'["leisure"~"water_park|swimming_pool"]'});
+ return filters;
+}
+function nameOf(tags){return tags.name||tags['name:sk']||tags.official_name||'Miesto bez uvedeného názvu'}
+function typeOf(t){
+ if(t.amenity==='restaurant') return 'Reštaurácia';
+ if(t.amenity==='cafe') return 'Kaviareň';
+ if(t.amenity==='fast_food') return 'Rýchle občerstvenie';
+ if(t.amenity==='cinema') return 'Kino';
+ if(t.tourism==='museum') return 'Múzeum';
+ if(t.tourism==='gallery') return 'Galéria';
+ if(t.tourism==='attraction') return 'Atrakcia';
+ if(t.leisure==='park') return 'Park';
+ if(t.leisure==='water_park') return 'Aquapark';
+ if(t.leisure==='swimming_pool') return 'Bazén / kúpalisko';
+ return 'Miesto';
+}
+$('search').addEventListener('click',async()=>{
+ const destination=$('destination').value.trim();
+ const filters=selectedCategories();
+ if(!destination){setStatus('Najprv zadaj mesto alebo destináciu.');return}
+ if(!filters.length){setStatus('Vyber aspoň jeden typ miesta.');return}
+ $('search').disabled=true;$('search').textContent='Vyhľadávam…';
+ results.innerHTML='';setStatus('Vyhľadávam polohu a miesta. Pri pomalom pripojení to môže chvíľu trvať.');
+ try{
+   const geoUrl='https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q='+encodeURIComponent(destination);
+   const geoResp=await fetch(geoUrl,{headers:{'Accept':'application/json'}});
+   if(!geoResp.ok) throw new Error('Geokódovacia služba momentálne neodpovedá.');
+   const geos=await geoResp.json();
+   if(!geos.length) throw new Error('Destináciu sa nepodarilo nájsť. Skús doplniť krajinu.');
+   const lat=Number(geos[0].lat),lon=Number(geos[0].lon);
+   const radius=10000;
+   const clauses=filters.map(f=>`nwr(around:${radius},${lat},${lon})${f.query};`).join('');
+   const query=`[out:json][timeout:25];(${clauses});out center tags;`;
+   const resp=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:query});
+   if(!resp.ok) throw new Error('Mapová služba je vyťažená. Skús to znova o chvíľu.');
+   const data=await resp.json();
+   const seen=new Set();
+   const places=(data.elements||[]).filter(el=>{
+      const tags=el.tags||{}; const name=nameOf(tags);
+      if(!tags.name&&!tags['name:sk']&&!tags.official_name) return false;
+      const key=name.toLowerCase();
+      if(seen.has(key)) return false;seen.add(key);return true;
+   }).slice(0,35);
+   setStatus(`Našiel som ${places.length} pomenovaných miest v okolí destinácie „${destination}“. Údaje nemusia byť úplné ani aktuálne.`);
+   if(!places.length){results.innerHTML='<p class="note">Nenašli sa žiadne pomenované miesta pre zvolené filtre. Skús zmeniť kategórie alebo názov destinácie.</p>'}
+   else results.innerHTML=places.map(el=>{
+     const t=el.tags||{}, name=nameOf(t), type=typeOf(t);
+     const address=[t['addr:street'],t['addr:housenumber'],t['addr:city']].filter(Boolean).join(' ');
+     const searchUrl='https://www.openstreetmap.org/?mlat='+encodeURIComponent(el.lat??el.center?.lat??lat)+'&mlon='+encodeURIComponent(el.lon??el.center?.lon??lon)+'#map=17/'+encodeURIComponent(el.lat??el.center?.lat??lat)+'/'+encodeURIComponent(el.lon??el.center?.lon??lon);
+     const mapsUrl='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(name+' '+destination);
+     return `<div class="place"><h3>${esc(name)}</h3><div class="tags"><span class="tag">${esc(type)}</span></div>${address?`<p>${esc(address)}</p>`:''}<p>${t.website?`Web: <a href="${esc(t.website)}" target="_blank" rel="noopener">oficiálna stránka</a>`:'Over si cenu a otváracie hodiny pred návštevou.'}</p><a href="${mapsUrl}" target="_blank" rel="noopener">Otvoriť v Google Maps ↗</a> · <a href="${searchUrl}" target="_blank" rel="noopener">OpenStreetMap ↗</a></div>`
+   }).join('');
+ }catch(err){
+   setStatus((err&&err.message?err.message:'Vyhľadávanie sa nepodarilo.')+' Ak otváraš HTML súbor priamo zo stiahnutých súborov, prehliadač môže blokovať požiadavky. Vydaná verzia musí byť hostovaná na zabezpečenej webovej adrese.');
+   results.innerHTML='<p class="note">Zatiaľ môžeš skúsiť mapy priamo: <a href="https://www.google.com/maps/search/'+encodeURIComponent(destination)+'" target="_blank" rel="noopener">otvoriť destináciu v Google Maps</a>.</p>';
+ }finally{$('search').disabled=false;$('search').textContent='Vyhľadať miesta'}
+});
+</script>
+</body>
+</html>
