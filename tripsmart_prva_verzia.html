@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0d9488">
+<title>TripSmart – plánuj výlet rozumne</title>
+<style>
+:root{--teal:#0d9488;--dark:#12313a;--bg:#f3f8f7;--muted:#60747a;--line:#dce9e6;--white:#fff}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--dark)}
+header{background:linear-gradient(135deg,#0d9488,#115e59);color:white;padding:26px 18px 30px;border-radius:0 0 26px 26px}
+.brand{font-size:13px;letter-spacing:2px;font-weight:800;opacity:.9}.hero{font-size:29px;line-height:1.12;font-weight:850;margin:12px 0 8px}.sub{font-size:14px;line-height:1.5;opacity:.92;max-width:340px}
+main{max-width:640px;margin:auto;padding:16px 14px 38px}.card{background:white;border:1px solid var(--line);border-radius:18px;padding:17px;margin:0 0 14px;box-shadow:0 5px 18px #153c3b0a}
+h2{font-size:18px;margin:0 0 14px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{margin-bottom:13px}.field:last-child{margin-bottom:0}label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}input,select{width:100%;padding:12px;border:1px solid #cbdcd8;border-radius:11px;font:inherit;font-size:15px;background:white;color:var(--dark)}.checks{display:grid;grid-template-columns:1fr 1fr;gap:9px}.check{display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--line);border-radius:11px;font-size:14px}.check input{width:17px;height:17px;accent-color:var(--teal)}
+button{width:100%;border:0;border-radius:13px;padding:14px 16px;background:var(--teal);color:white;font:inherit;font-weight:800;font-size:16px;cursor:pointer}.note{font-size:12px;color:var(--muted);line-height:1.45;margin-top:10px}.result{display:none}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}.metric{background:#eaf7f4;padding:12px;border-radius:12px}.metric small{display:block;color:var(--muted);font-size:11px}.metric strong{font-size:17px}.day{padding:13px 0;border-top:1px solid var(--line)}.day h3{margin:0 0 7px;font-size:15px}.day p{margin:5px 0;font-size:14px;line-height:1.45}.tag{display:inline-block;background:#eaf7f4;color:#0f766e;border-radius:99px;padding:5px 9px;font-size:12px;margin:2px 4px 2px 0}.premium{background:#f2edff;border-color:#ded2ff}.premium button{background:#6d4bc3}.foot{text-align:center;color:var(--muted);font-size:12px;padding:8px 10px 20px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">TRIPSMART</div>
+  <div class="hero">Menej plánovania.<br>Viac zážitkov.</div>
+  <div class="sub">Vytvor si návrh výletu podľa rozpočtu, času a toho, čo ťa baví.</div>
+</header>
+<main>
+  <section class="card">
+    <h2>Kam sa vyberieme?</h2>
+    <div class="field"><label for="destination">Destinácia alebo mesto</label><input id="destination" value="Vysoké Tatry" placeholder="Napr. Košice, Praha, Tatry"></div>
+    <div class="grid">
+      <div class="field"><label for="budget">Celkový rozpočet (€)</label><input id="budget" type="number" min="1" value="300"></div>
+      <div class="field"><label for="people">Počet osôb</label><input id="people" type="number" min="1" max="30" value="3"></div>
+      <div class="field"><label for="days">Počet dní</label><select id="days"><option value="1">1 deň</option><option value="2" selected>2 dni</option><option value="3">3 dni</option><option value="4">4 dni</option><option value="5">5 dní</option><option value="7">7 dní</option></select></div>
+      <div class="field"><label for="transport">Doprava</label><select id="transport"><option value="auto">Autom</option><option value="public">Verejná doprava</option><option value="walk">Pešo / bicykel</option></select></div>
+    </div>
+  </section>
+  <section class="card">
+    <h2>Čo vás baví?</h2>
+    <div class="checks">
+      <label class="check"><input type="checkbox" id="food" checked> Reštaurácie</label>
+      <label class="check"><input type="checkbox" id="sights" checked> Atrakcie</label>
+      <label class="check"><input type="checkbox" id="nature" checked> Príroda</label>
+      <label class="check"><input type="checkbox" id="cinema"> Kino</label>
+      <label class="check"><input type="checkbox" id="water"> Aquapark</label>
+      <label class="check"><input type="checkbox" id="discounts" checked> Zľavy</label>
+    </div>
+    <p class="note">Táto prvá verzia vytvára orientačný návrh. Zatiaľ nevyhľadáva živé ceny, otváracie hodiny ani aktuálne zľavy.</p>
+  </section>
+  <button id="generate">✨ Vytvoriť môj výlet</button>
+  <section id="result" class="card result" aria-live="polite" style="margin-top:14px">
+    <h2 id="resultTitle">Tvoj návrh výletu</h2>
+    <div class="summary">
+      <div class="metric"><small>Rozpočet</small><strong id="rBudget">300 €</strong></div>
+      <div class="metric"><small>Na osobu</small><strong id="rPerson">100 €</strong></div>
+      <div class="metric"><small>Na deň</small><strong id="rDay">150 €</strong></div>
+    </div>
+    <div id="allocation"></div>
+    <h2 style="margin-top:18px">Návrh programu</h2>
+    <div id="itinerary"></div>
+    <p class="note">Odhady sú len orientačné a nie sú cenovou ponukou. Pred cestou si over vstupné, dopravu, rezervácie a otváracie hodiny.</p>
+  </section>
+  <section class="card premium">
+    <h2>TripSmart Premium</h2>
+    <p style="margin:0 0 8px">Plánovaná cena: <strong>3,99 € mesačne</strong></p>
+    <p style="margin:0;font-size:14px;line-height:1.5">Plán: 3 dni na vyskúšanie, potom mesačné predplatné. Platby ešte nie sú zapojené a táto ukážka nič neúčtuje.</p>
+  </section>
+</main>
+<div class="foot">TripSmart • Prvá ukážková verzia • Vytvorená na otestovanie nápadu</div>
+<script>
+const euro = n => new Intl.NumberFormat('sk-SK',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n);
+document.getElementById('generate').addEventListener('click',()=>{
+  const dest=document.getElementById('destination').value.trim()||'vybraná destinácia';
+  const budget=Math.max(1,Number(document.getElementById('budget').value)||1);
+  const people=Math.max(1,Number(document.getElementById('people').value)||1);
+  const days=Math.max(1,Number(document.getElementById('days').value)||1);
+  const transport=document.getElementById('transport').value;
+  const selected=['food','sights','nature','cinema','water','discounts'].filter(id=>document.getElementById(id).checked);
+  let weights={transport:transport==='auto'?.28:transport==='public'?.18:.05,food:.30,activities:.25,other:.17};
+  if(!document.getElementById('food').checked){weights.food=.12;weights.other+=.18}
+  if(!document.getElementById('sights').checked&&!document.getElementById('nature').checked){weights.activities=.10;weights.other+=.15}
+  const total=Object.values(weights).reduce((a,b)=>a+b,0);
+  const alloc=Object.entries(weights).map(([k,v])=>[k,budget*v/total]);
+  const labels={transport:'Doprava',food:'Jedlo a občerstvenie',activities:'Aktivity a vstupné',other:'Rezerva a ostatné'};
+  document.getElementById('resultTitle').textContent='Tvoj návrh: '+dest;
+  document.getElementById('rBudget').textContent=euro(budget);
+  document.getElementById('rPerson').textContent=euro(budget/people);
+  document.getElementById('rDay').textContent=euro(budget/days);
+  document.getElementById('allocation').innerHTML='<h2>Orientačné rozdelenie rozpočtu</h2>'+alloc.map(([k,v])=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #e7efed;font-size:14px"><span>${labels[k]}</span><strong>${euro(v)}</strong></div>`).join('');
+  const activities=[];
+  if(document.getElementById('nature').checked) activities.push(['Príroda a prechádzka','Vyberte si miestnu trasu alebo vyhliadku vhodnú pre vašu skupinu.']);
+  if(document.getElementById('sights').checked) activities.push(['Hlavná atrakcia','Pozrite si múzeum, pamiatku alebo obľúbenú atrakciu v okolí.']);
+  if(document.getElementById('food').checked) activities.push(['Obed alebo večera','Porovnajte jedálne lístky a ceny reštaurácií v destinácii.']);
+  if(document.getElementById('cinema').checked) activities.push(['Kino','Skontrolujte miestny program a časy predstavení.']);
+  if(document.getElementById('water').checked) activities.push(['Aquapark alebo kúpalisko','Overte si otváracie hodiny a ceny vstupného.']);
+  if(document.getElementById('discounts').checked) activities.push(['Kontrola zliav','Pred rezerváciou hľadajte oficiálne zľavy a rodinné vstupné.']);
+  if(!activities.length) activities.push(['Voľný program','Pridajte si záujem, aby sme vedeli navrhnúť aktivity.']);
+  let itinerary='';
+  for(let d=1;d<=days;d++){
+    const a=activities[(d-1)%activities.length], b=activities[d%activities.length];
+    itinerary+=`<div class="day"><h3>Deň ${d}</h3><p><strong>Ráno</strong> · ${a[0]} – ${a[1]}</p><p><strong>Popoludnie</strong> · ${b[0]} – ${b[1]}</p><p><strong>Večer</strong> · Oddych a kontrola výdavkov oproti rozpočtu.</p></div>`;
+  }
+  document.getElementById('itinerary').innerHTML=itinerary;
+  const result=document.getElementById('result');result.style.display='block';result.scrollIntoView({behavior:'smooth',block:'start'});
+});
+</script>
+</body>
+</html>
